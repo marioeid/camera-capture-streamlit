@@ -1,23 +1,16 @@
-import streamlit as st
+from streamlit_webrtc import webrtc_streamer, RTCConfiguration
+import av
 import cv2
 
-def main():
-    st.set_page_config(page_title="Streamlit WebCam App")
-    st.title("Webcam Display Steamlit App")
-    st.caption("Powered by OpenCV, Streamlit")
-    cap = cv2.VideoCapture(0)
-    frame_placeholder = st.empty()
-    stop_button_pressed = st.button("Stop")
-    while cap.isOpened() and not stop_button_pressed:
-        ret, frame = cap.read()
-        if not ret:
-            st.write("Video Capture Ended")
-            break
-        frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-        frame_placeholder.image(frame,channels="RGB")
-        if cv2.waitKey(1) & 0xFF == ord("q") or stop_button_pressed:
-            break
-    cap.release()
 
-if __name__ == "__main__":
-    main()
+class VideoProcessor:
+	def recv(self, frame):
+		frm = frame.to_ndarray(format="bgr24")
+
+		return av.VideoFrame.from_ndarray(frm, format='bgr24')
+
+webrtc_streamer(key="key", video_processor_factory=VideoProcessor,
+				rtc_configuration=RTCConfiguration(
+					{"iceServers": [{"urls": ["stun:stun.l.google.com:19302"]}]}
+)
+	)
